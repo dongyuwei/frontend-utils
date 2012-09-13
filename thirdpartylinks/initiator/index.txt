@@ -1,0 +1,15 @@
+[
+   "http://partner.googleadservices.com/gampad/google_service.js",
+   "http://www.google-analytics.com/ga.js",
+   "https://seal.verisign.com/getseal?host_name=www.lightinthebox.com&size=S&use_flash=YES&use_transparent=YES&lang=en",
+   "https://www.googleadservices.com/pagead/conversion.js",
+   "http://www.googleadservices.com/pagead/conversion.js",
+   "https://tracking.searchmarketing.com/welcome.asp?SMCID=62001172&x=",
+   "https://tracking.searchmarketing.com/welcome.asp?SMCID=62001190&x=",
+   "http://fls.doubleclick.net/activityi;src=3320279;type=nonle718;cat=litbh325;ord=6984294494614.005?",
+   "http://rainbow-uk.mythings.com/c.aspx?atok=1939-100-uk",
+   "https://seal.verisign.com/getseal?at=1&sealid=2&dn=www.lightinthebox.com&lang=en",
+   "https://dsp-service.adsvana.com/um?121.11407122574747&aid=EDMwATM&uuid=&seg=language:en$page_type:index$category_level:$category_id:$product_id:",
+   "http://server.iad.liveperson.net/hcp/html/mTag.js?site=2383438",
+   "http://dis.us.criteo.com/dis/dis.aspx?p1=v%3D2%26wi%3D7712825%26pt1%3D0%26pt2%3D1&t1=sendEvent&p=2639&c=2&cb=47416458907"
+]

@@ -1,0 +1,1 @@
+/Users/ilfe/code/chrome4dev/test/chrome-mac/Chromium.app/Contents/MacOS/Chromium --user-data-dir=/Users/ilfe/code/chrome4dev/test/.profile   --debug-devtools-frontend=/Users/ilfe/code/chrome4dev/test/devtools  http://www.lightinthebox.com/
