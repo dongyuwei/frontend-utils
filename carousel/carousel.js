@@ -134,9 +134,9 @@ litb.touchCarousel = function(config) {
 	var first = box.children(":first");
 	var totalWidth = first.outerWidth(true) * box.children().length;
 	box.css('width', totalWidth);
-
+	box.children(":last").addClass('last');
+	
 	var width = first.width();
-	var last = box.children(":last");
 	var step = first.outerWidth(true) * (config.itemsPerMove || 1);
 
 
@@ -153,9 +153,11 @@ litb.touchCarousel = function(config) {
 			return false;
 		}
 		var dir = direction === 'left' ? '+=' : '-=';
+		// step = direction === 'left' ? 137  : step + 1;
 		// if(Math.abs(box.position().left) + container.outerWidth() + width > totalWidth){
 		// 	step = totalWidth - Math.abs(box.position().left) - container.outerWidth() ;
 		// }
+		console.log(dir + step)
 		box.animate({
 			left: dir + step
 		}, 500, 'swing', function() {
