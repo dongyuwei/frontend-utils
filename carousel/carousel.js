@@ -1,4 +1,3 @@
-//todo: 1 左右滚动状态控制 2 自动滚动轮播 3 touchmove移动
 var litb = window.litb || {};
 /**
  * @param  {Object} config
@@ -100,66 +99,82 @@ litb.touchCarousel = function(config) {
 		left.addClass('disabled');
 	}
 
-	function transform(element, dir, duration) {
+	var span = 0;
+	function transform(element, dir, duration,isTouch,dx) {
 		var style = element[0].style;
-		var span = dir === 'left' ? element.position().left + step : element.position().left - step;
+		span = dir === 'left' ? element.position().left + dx : element.position().left - dx;
+		if(isTouch){
+			span = dir === 'left' ? element.position().left - dx : element.position().left + dx;
+		}
+
 		style.webkitTransitionDuration = style.MozTransitionDuration = style.msTransitionDuration = style.OTransitionDuration = style.transitionDuration = duration + 'ms';
 		style.MozTransform = style.webkitTransform = 'translate3d(' + span + 'px,0,0)';
 		style.msTransform = style.OTransform = 'translateX(' + span + 'px)';
 
-		element.bind('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd', transitionEnd);
+		element.bind('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd', afterTransition);
 	};
 
 	var cssTranslate3dSupported = supportTransform3d();
 
-	function transitionEnd(){
-		if(box.position().left < 0) {
+	function afterTransition(){
+		if(box.position().left < 0){
 			left.removeClass('disabled');
-		} else {
+		} else{
 			left.addClass('disabled');
 		}
-		if(Math.abs(box.position().left) + container.outerWidth() + width > totalWidth) {
+		
+		if(Math.round(box.position().left) === 0){
+			left.addClass('disabled');
+		}
+
+		if(Math.abs(box.position().left) + container.outerWidth() + width >= totalWidth + step) {
 			right.addClass('disabled');
 		} else {
 			right.removeClass('disabled');
 		}
 	}
-
-	function moveTo(direction, e) {
+	function moveTo(direction, e,isTouch) {
 		e && e.preventDefault();
+
 		if(direction === 'left' && left.hasClass('disabled')) {
 			return false;
 		}
 		if(direction === 'right' && right.hasClass('disabled')) {
 			return false;
 		}
-		var dir = direction === 'left' ? '+=' : '-=';
-		// if(Math.abs(box.position().left) + container.outerWidth() + width > totalWidth){
-		// 	step = totalWidth - Math.abs(box.position().left) - container.outerWidth() ;
-		// }
-		
+
+		var dx = step;
+		if(direction === 'left' && Math.abs(box.position().left) < step){
+			dx = Math.abs(box.position().left);
+		}
+
+		if(direction === 'right' && Math.abs(box.position().left) + container.outerWidth() + width > totalWidth){
+			dx = step - (Math.abs(box.position().left) + container.outerWidth() + width - totalWidth);
+		}
+
 		if(cssTranslate3dSupported){
-			transform(box, direction, 500);
+			transform(box, direction, 500,isTouch,dx);
 		}else{
 			box.animate({
-				left: dir + step
-			}, 500, 'swing', transitionEnd);
+				left: (direction === 'left' ? '+=' : '-=') + dx
+			}, 500, 'swing', afterTransition);
 		}
+		
 	}
 
 	var userAgent = navigator.userAgent.toLowerCase();
 	var clickEvent = (userAgent.indexOf('iphone') != -1 || userAgent.indexOf('ipod') != -1) ? 'tap' : 'click';
 
 	left.bind(clickEvent, function(e) {
-		moveTo('left', e);
+		moveTo('left', e,false);
 	});
 	right.bind(clickEvent, function(e) {
-		moveTo('right', e);
+		moveTo('right', e,false);
 	});
 
 	bindTouchEvent(box, function(e) {
-		moveTo('left');
+		moveTo('left',null,true);
 	}, function(e) {
-		moveTo('right');
+		moveTo('right',null,true);
 	});
 };
