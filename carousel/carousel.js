@@ -95,7 +95,7 @@ litb.touchCarousel = function(config) {
 	box.children(":last").addClass('last');
 
 	var width = first.width();
-	var step = first.outerWidth(true) * config.itemsPerMove);
+	var step = first.outerWidth(true) * config.itemsPerMove;
 
 
 	if(box.position().left === 0) {
