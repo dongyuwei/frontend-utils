@@ -126,8 +126,8 @@ litb.touchCarousel = function(config) {
 		if(Math.round(box.position().left) === 0){
 			left.addClass('disabled');
 		}
-
-		if(Math.abs(box.position().left) + container.outerWidth() + width >= totalWidth + step) {
+		
+		if(Math.abs(box.position().left) + container.outerWidth() + 20 >= totalWidth) {
 			right.addClass('disabled');
 		} else {
 			right.removeClass('disabled');
@@ -148,8 +148,8 @@ litb.touchCarousel = function(config) {
 			dx = Math.abs(box.position().left);
 		}
 
-		if(direction === 'right' && Math.abs(box.position().left) + container.outerWidth() + width > totalWidth){
-			dx = step - (Math.abs(box.position().left) + container.outerWidth() + width - totalWidth);
+		if(direction === 'right' && Math.abs(box.position().left) + container.outerWidth() + step > totalWidth){
+			dx = totalWidth - Math.abs(box.position().left) - container.outerWidth();
 		}
 
 		if(cssTranslate3dSupported){
