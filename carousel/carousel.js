@@ -4,7 +4,23 @@ var litb = window.litb || {};
  * @param  {Object} config
  */
 litb.touchCarousel = function(config) {
-	
+	function supportTransform3d() {
+		var supported = false;
+	    var div = $('<div style="position:absolute;">Translate3d Test</div>');
+	    $('body').append(div);
+	    div.css(
+	    {
+	        'transform' : "translate3d(3px,0,0)",
+	        '-moz-transform' : "translate3d(3px,0,0)",
+	        '-webkit-transform' : "translate3d(3px,0,0)",
+	        '-o-transform' : "translate3d(3px,0,0)",
+	        '-ms-transform' : "translate3d(3px,0,0)"
+	    });
+	    supported = (div.offset().left === 3);
+	    div.empty().remove();
+	    return supported;
+	}
+
 	function swipeDirection(x1, x2, y1, y2) {
 		var xDelta = Math.abs(x1 - x2),
 			yDelta = Math.abs(y1 - y2);
@@ -12,7 +28,8 @@ litb.touchCarousel = function(config) {
 	}
 
 	function bindTouchEvent(el, leftCallback, rightCallback) {
-		var touch = {}, swipeTimeout;
+		var touch = {},
+			swipeTimeout;
 
 		function touchStart(e) {
 			e.preventDefault();
@@ -83,6 +100,31 @@ litb.touchCarousel = function(config) {
 		left.addClass('disabled');
 	}
 
+	function transform(element, dir, duration) {
+		var style = element[0].style;
+		var span = dir === 'left' ? element.position().left + step : element.position().left - step;
+		style.webkitTransitionDuration = style.MozTransitionDuration = style.msTransitionDuration = style.OTransitionDuration = style.transitionDuration = duration + 'ms';
+		style.MozTransform = style.webkitTransform = 'translate3d(' + span + 'px,0,0)';
+		style.msTransform = style.OTransform = 'translateX(' + span + 'px)';
+
+		element.bind('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd', transitionEnd);
+	};
+
+	var cssTranslate3dSupported = supportTransform3d();
+
+	function transitionEnd(){
+		if(box.position().left < 0) {
+			left.removeClass('disabled');
+		} else {
+			left.addClass('disabled');
+		}
+		if(Math.abs(box.position().left) + container.outerWidth() + width > totalWidth) {
+			right.addClass('disabled');
+		} else {
+			right.removeClass('disabled');
+		}
+	}
+
 	function moveTo(direction, e) {
 		e && e.preventDefault();
 		if(direction === 'left' && left.hasClass('disabled')) {
@@ -92,24 +134,17 @@ litb.touchCarousel = function(config) {
 			return false;
 		}
 		var dir = direction === 'left' ? '+=' : '-=';
-		// step = direction === 'left' ? 137  : step + 1;
 		// if(Math.abs(box.position().left) + container.outerWidth() + width > totalWidth){
 		// 	step = totalWidth - Math.abs(box.position().left) - container.outerWidth() ;
 		// }
-		box.animate({
-			left: dir + step
-		}, 500, 'swing', function() {
-			if(box.position().left < 0) {
-				left.removeClass('disabled');
-			} else {
-				left.addClass('disabled');
-			}
-			if(Math.abs(box.position().left) + container.outerWidth() + width > totalWidth) {
-				right.addClass('disabled');
-			} else {
-				right.removeClass('disabled');
-			}
-		});
+		
+		if(cssTranslate3dSupported){
+			transform(box, direction, 500);
+		}else{
+			box.animate({
+				left: dir + step
+			}, 500, 'swing', transitionEnd);
+		}
 	}
 
 	var userAgent = navigator.userAgent.toLowerCase();
