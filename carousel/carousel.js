@@ -116,6 +116,7 @@ litb.touchCarousel = function(config) {
 
 	var cssTranslate3dSupported = supportTransform3d();
 
+	var locked = false;
 	function afterTransition(){
 		if(box.position().left < 0){
 			left.removeClass('disabled');
@@ -126,15 +127,20 @@ litb.touchCarousel = function(config) {
 		if(Math.round(box.position().left) === 0){
 			left.addClass('disabled');
 		}
-		
+
 		if(Math.abs(box.position().left) + container.outerWidth() + 20 >= totalWidth) {
 			right.addClass('disabled');
 		} else {
 			right.removeClass('disabled');
 		}
+		locked = false;
 	}
 	function moveTo(direction, e,isTouch) {
 		e && e.preventDefault();
+		if(locked){
+			return;
+		}
+		locked = true;
 
 		if(direction === 'left' && left.hasClass('disabled')) {
 			return false;
