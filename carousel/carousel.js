@@ -4,105 +4,49 @@ var litb = window.litb || {};
  * @param  {Object} config
  */
 litb.touchCarousel = function(config) {
-	function touchDirection(el, leftCallback,rightCallback) {
-		var fingerCount = 0;
-		var startX = 0;
-		var startY = 0;
-		var curX = 0;
-		var curY = 0;
-		var deltaX = 0;
-		var deltaY = 0;
-		var horzDiff = 0;
-		var vertDiff = 0;
-		var minLength = 72;
-		var swipeLength = 0;
-		var swipeAngle = null;
-		var swipeDirection = null;
+	
+	function swipeDirection(x1, x2, y1, y2) {
+		var xDelta = Math.abs(x1 - x2),
+			yDelta = Math.abs(y1 - y2);
+		return xDelta >= yDelta ? (x1 - x2 > 0 ? 'Left' : 'Right') : (y1 - y2 > 0 ? 'Up' : 'Down');
+	}
 
-		function touchStart(event) {
-			event.preventDefault();
-			fingerCount = event.touches.length;
-			if(fingerCount == 1) {
-				startX = event.touches[0].pageX;
-				startY = event.touches[0].pageY;
-			} else {
-				touchCancel(event);
+	function bindTouchEvent(el, leftCallback, rightCallback) {
+		var touch = {}, swipeTimeout;
+
+		function touchStart(e) {
+			e.preventDefault();
+			touch.x1 = e.touches[0].pageX;
+			touch.y1 = e.touches[0].pageY;
+		}
+
+		function touchMove(e) {
+			e.preventDefault();
+			touch.x2 = e.touches[0].pageX;
+			touch.y2 = e.touches[0].pageY;
+		}
+
+		function touchEnd(e) {
+			e.preventDefault();
+			if((touch.x2 && Math.abs(touch.x1 - touch.x2) > 30) || (touch.y2 && Math.abs(touch.y1 - touch.y2) > 30)) {
+				clearTimeout(swipeTimeout);
+				swipeTimeout = setTimeout(function() {
+					var dir = swipeDirection(touch.x1, touch.x2, touch.y1, touch.y2);
+					if(dir === 'Left') {
+						leftCallback();
+					}
+					if(dir === 'Right') {
+						rightCallback();
+					}
+					touch = {};
+				}, 0);
 			}
 		}
 
-		function touchMove(event) {
-			event.preventDefault();
-			if(event.touches.length == 1) {
-				curX = event.touches[0].pageX;
-				curY = event.touches[0].pageY;
-			} else {
-				touchCancel(event);
-			}
-		}
-
-		function touchEnd(event) {
-			event.preventDefault();
-			if(fingerCount == 1 && curX != 0) {
-				swipeLength = Math.round(Math.sqrt(Math.pow(curX - startX, 2) + Math.pow(curY - startY, 2)));
-				if(swipeLength >= minLength) {
-					caluculateAngle();
-					determineSwipeDirection();
-					touchCancel(event);
-				} else {
-					touchCancel(event);
-				}
-			} else {
-				touchCancel(event);
-			}
-		}
-
-		function touchCancel(event) {
-			fingerCount = 0;
-			startX = 0;
-			startY = 0;
-			curX = 0;
-			curY = 0;
-			deltaX = 0;
-			deltaY = 0;
-			horzDiff = 0;
-			vertDiff = 0;
-			swipeLength = 0;
-			swipeAngle = null;
-			swipeDirection = null;
-		}
-
-		function caluculateAngle() {
-			var X = startX - curX;
-			var Y = curY - startY;
-			var Z = Math.round(Math.sqrt(Math.pow(X, 2) + Math.pow(Y, 2)));
-			var r = Math.atan2(Y, X);
-			swipeAngle = Math.round(r * 180 / Math.PI);
-			if(swipeAngle < 0) {
-				swipeAngle = 360 - Math.abs(swipeAngle);
-			}
-		}
-
-		function determineSwipeDirection() {
-			if((swipeAngle <= 45) && (swipeAngle >= 0)) {
-				swipeDirection = 'left';
-			} else if((swipeAngle <= 360) && (swipeAngle >= 315)) {
-				swipeDirection = 'left';
-			} else if((swipeAngle >= 135) && (swipeAngle <= 225)) {
-				swipeDirection = 'right';
-			} else if((swipeAngle > 45) && (swipeAngle < 135)) {
-				swipeDirection = 'down';
-			} else {
-				swipeDirection = 'up';
-			}
-			processingRoutine(swipeDirection);
-		}
-
-		function processingRoutine(swipeDirection) {
-			if(swipeDirection == 'left') {
-				leftCallback();
-			} else if(swipeDirection == 'right') {
-				rightCallback();
-			}
+		function touchCancel(e) {
+			e.preventDefault();
+			clearTimeout(swipeTimeout);
+			touch = {};
 		}
 
 		el.bind('touchstart', function(e) {
@@ -118,15 +62,10 @@ litb.touchCarousel = function(config) {
 			touchCancel(e.originalEvent);
 		});
 	}
-
 	//---------------------------------------------------------------------\\
 	var container = config.container;
-	container.css('overflow','visible');
-	container[0].innerHTML = '<div class="touchcarousel-wrapper">' 
-		+ container[0].innerHTML 
-		+ '</div>' 
-		+ '<a href="#" class="arrow-holder left"><span class="arrow-icon left"></span></a>'
-		+ '<a href="#" class="arrow-holder right"><span class="arrow-icon right"></span></a>';
+	container.css('overflow', 'visible');
+	container[0].innerHTML = '<div class="touchcarousel-wrapper">' + container[0].innerHTML + '</div>' + '<a href="#" class="arrow-holder left"><span class="arrow-icon left"></span></a>' + '<a href="#" class="arrow-holder right"><span class="arrow-icon right"></span></a>';
 
 	var box = container.find('ul');
 	var left = container.find('.arrow-holder.left');
@@ -135,21 +74,21 @@ litb.touchCarousel = function(config) {
 	var totalWidth = first.outerWidth(true) * box.children().length;
 	box.css('width', totalWidth);
 	box.children(":last").addClass('last');
-	
+
 	var width = first.width();
 	var step = first.outerWidth(true) * (config.itemsPerMove || 1);
 
 
-	if(box.position().left === 0){
+	if(box.position().left === 0) {
 		left.addClass('disabled');
 	}
 
-	function moveTo(direction,e) {
+	function moveTo(direction, e) {
 		e && e.preventDefault();
-		if(direction ==='left' && left.hasClass('disabled')){
+		if(direction === 'left' && left.hasClass('disabled')) {
 			return false;
 		}
-		if(direction ==='right' && right.hasClass('disabled')){
+		if(direction === 'right' && right.hasClass('disabled')) {
 			return false;
 		}
 		var dir = direction === 'left' ? '+=' : '-=';
@@ -157,18 +96,17 @@ litb.touchCarousel = function(config) {
 		// if(Math.abs(box.position().left) + container.outerWidth() + width > totalWidth){
 		// 	step = totalWidth - Math.abs(box.position().left) - container.outerWidth() ;
 		// }
-		console.log(dir + step)
 		box.animate({
 			left: dir + step
 		}, 500, 'swing', function() {
-			if(box.position().left < 0){
+			if(box.position().left < 0) {
 				left.removeClass('disabled');
-			}else{
+			} else {
 				left.addClass('disabled');
 			}
-			if(Math.abs(box.position().left) + container.outerWidth() + width > totalWidth){
+			if(Math.abs(box.position().left) + container.outerWidth() + width > totalWidth) {
 				right.addClass('disabled');
-			}else{
+			} else {
 				right.removeClass('disabled');
 			}
 		});
@@ -177,16 +115,16 @@ litb.touchCarousel = function(config) {
 	var userAgent = navigator.userAgent.toLowerCase();
 	var clickEvent = (userAgent.indexOf('iphone') != -1 || userAgent.indexOf('ipod') != -1) ? 'tap' : 'click';
 
-	left.bind(clickEvent, function(e){
-		moveTo('left',e);
+	left.bind(clickEvent, function(e) {
+		moveTo('left', e);
 	});
-	right.bind(clickEvent, function(e){
-		moveTo('right',e);
+	right.bind(clickEvent, function(e) {
+		moveTo('right', e);
 	});
-	
-	touchDirection(box,function(e){
+
+	bindTouchEvent(box, function(e) {
 		moveTo('left');
-	},function(e){
+	}, function(e) {
 		moveTo('right');
 	});
 };
