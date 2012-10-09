@@ -5,6 +5,7 @@ var litb = window.litb || {};
 litb.touchCarousel = function(config) {
 	config.duration = config.duration || 500; //动画持续时间
 	config.itemsPerMove = config.itemsPerMove || 1;//每次滑动的(图片)个数
+	config.noTransform3d = config.noTransform3d  || false; // 不使用css3 Transform3d
 
 	function supportTransform3d() {
 		var supported = false;
@@ -146,9 +147,9 @@ litb.touchCarousel = function(config) {
 			dx = Math.abs(box.position().left);
 		}
 		if(direction === 'right' && Math.abs(box.position().left) + container.outerWidth() + step > totalWidth){
-			dx = totalWidth - Math.abs(box.position().left) - container.outerWidth();
+			dx = totalWidth - Math.abs(box.position().left) - container.outerWidth() + 3;
 		}
-		if(cssTranslate3dSupported){
+		if(cssTranslate3dSupported && !config.noTransform3d){
 			transform(box, direction,dx);
 		}else{
 			box.animate({
