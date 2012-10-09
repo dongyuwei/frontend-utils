@@ -3,6 +3,9 @@ var litb = window.litb || {};
  * @param  {Object} config
  */
 litb.touchCarousel = function(config) {
+	config.duration = config.duration || 500; //动画持续时间
+	config.itemsPerMove = config.itemsPerMove || 1;//每次滑动的(图片)个数
+
 	function supportTransform3d() {
 		var supported = false;
 	    var div = $('<div style="position:absolute;">Translate3d Test</div>');
@@ -92,7 +95,7 @@ litb.touchCarousel = function(config) {
 	box.children(":last").addClass('last');
 
 	var width = first.width();
-	var step = first.outerWidth(true) * (config.itemsPerMove || 1);
+	var step = first.outerWidth(true) * config.itemsPerMove);
 
 
 	if(box.position().left === 0) {
@@ -100,10 +103,10 @@ litb.touchCarousel = function(config) {
 	}
 
 	var span = 0;
-	function transform(element, dir, duration,dx) {
+	function transform(element, dir,dx) {
 		var style = element[0].style;
 		span = dir === 'left' ? element.position().left + dx : element.position().left - dx;
-		style.webkitTransitionDuration = style.MozTransitionDuration = style.msTransitionDuration = style.OTransitionDuration = style.transitionDuration = duration + 'ms';
+		style.webkitTransitionDuration = style.MozTransitionDuration = style.msTransitionDuration = style.OTransitionDuration = style.transitionDuration = config.duration + 'ms';
 		style.MozTransform = style.webkitTransform = 'translate3d(' + span + 'px,0,0)';
 		style.msTransform = style.OTransform = 'translateX(' + span + 'px)';
 
@@ -146,11 +149,11 @@ litb.touchCarousel = function(config) {
 			dx = totalWidth - Math.abs(box.position().left) - container.outerWidth();
 		}
 		if(cssTranslate3dSupported){
-			transform(box, direction, 500,dx);
+			transform(box, direction,dx);
 		}else{
 			box.animate({
 				left: (direction === 'left' ? '+=' : '-=') + dx
-			}, 500, 'swing', afterTransition);
+			}, config.duration, 'swing', afterTransition);
 		}
 		
 	}
