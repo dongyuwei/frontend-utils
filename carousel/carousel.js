@@ -100,13 +100,9 @@ litb.touchCarousel = function(config) {
 	}
 
 	var span = 0;
-	function transform(element, dir, duration,isTouch,dx) {
+	function transform(element, dir, duration,dx) {
 		var style = element[0].style;
 		span = dir === 'left' ? element.position().left + dx : element.position().left - dx;
-		if(isTouch){
-			span = dir === 'left' ? element.position().left - dx : element.position().left + dx;
-		}
-
 		style.webkitTransitionDuration = style.MozTransitionDuration = style.msTransitionDuration = style.OTransitionDuration = style.transitionDuration = duration + 'ms';
 		style.MozTransform = style.webkitTransform = 'translate3d(' + span + 'px,0,0)';
 		style.msTransform = style.OTransform = 'translateX(' + span + 'px)';
@@ -116,7 +112,6 @@ litb.touchCarousel = function(config) {
 
 	var cssTranslate3dSupported = supportTransform3d();
 
-	var locked = false;
 	function afterTransition(){
 		if(box.position().left < 0){
 			left.removeClass('disabled');
@@ -133,33 +128,25 @@ litb.touchCarousel = function(config) {
 		} else {
 			right.removeClass('disabled');
 		}
-		locked = false;
 	}
-	function moveTo(direction, e,isTouch) {
+	function moveTo(direction, e) {
 		e && e.preventDefault();
-		if(locked){
-			return;
-		}
-		locked = true;
-
+		
 		if(direction === 'left' && left.hasClass('disabled')) {
 			return false;
 		}
 		if(direction === 'right' && right.hasClass('disabled')) {
 			return false;
 		}
-
 		var dx = step;
 		if(direction === 'left' && Math.abs(box.position().left) < step){
 			dx = Math.abs(box.position().left);
 		}
-
 		if(direction === 'right' && Math.abs(box.position().left) + container.outerWidth() + step > totalWidth){
 			dx = totalWidth - Math.abs(box.position().left) - container.outerWidth();
 		}
-
 		if(cssTranslate3dSupported){
-			transform(box, direction, 500,isTouch,dx);
+			transform(box, direction, 500,dx);
 		}else{
 			box.animate({
 				left: (direction === 'left' ? '+=' : '-=') + dx
@@ -172,15 +159,16 @@ litb.touchCarousel = function(config) {
 	var clickEvent = (userAgent.indexOf('iphone') != -1 || userAgent.indexOf('ipod') != -1) ? 'tap' : 'click';
 
 	left.bind(clickEvent, function(e) {
-		moveTo('left', e,false);
+		moveTo('left', e);
 	});
 	right.bind(clickEvent, function(e) {
-		moveTo('right', e,false);
+		moveTo('right', e);
 	});
 
+	//touchmove时反方向滑动
 	bindTouchEvent(box, function(e) {
-		moveTo('left',null,true);
+		moveTo('right');
 	}, function(e) {
-		moveTo('right',null,true);
+		moveTo('left');
 	});
 };
