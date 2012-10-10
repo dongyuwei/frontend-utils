@@ -3,9 +3,15 @@ var litb = window.litb || {};
  * @param  {Object} config
  */
 litb.touchCarousel = function(config) {
-	config.duration = config.duration || 500; //动画持续时间
-	config.itemsPerMove = config.itemsPerMove || 1;//每次滑动的(图片)个数
-	config.noTransform3d = config.noTransform3d  || false; // 不使用css3 Transform3d
+	config = $.extend({
+		duration  : 500, //动画持续时间
+		itemsPerMove : 1, //每次滑动的(图片)个数
+		noTransform3d : false, // 不使用css3 Transform3d
+
+		autoPlay  : false, //自动播放
+		pagingNav : false //显示paging
+	},config);
+
 
 	function supportTransform3d() {
 		var supported = false;
@@ -103,13 +109,12 @@ litb.touchCarousel = function(config) {
 		left.addClass('disabled');
 	}
 
-	var span = 0;
 	function transform(element, dir,dx) {
 		var style = element[0].style;
-		span = dir === 'left' ? element.position().left + dx : element.position().left - dx;
+		var distance = dir === 'left' ? element.position().left + dx : element.position().left - dx;
 		style.webkitTransitionDuration = style.MozTransitionDuration = style.msTransitionDuration = style.OTransitionDuration = style.transitionDuration = config.duration + 'ms';
-		style.MozTransform = style.webkitTransform = 'translate3d(' + span + 'px,0,0)';
-		style.msTransform = style.OTransform = 'translateX(' + span + 'px)';
+		style.MozTransform = style.webkitTransform = 'translate3d(' + distance + 'px,0,0)';
+		style.msTransform = style.OTransform = 'translateX(' + distance + 'px)';
 
 		element.bind('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd', afterTransition);
 	};
@@ -117,18 +122,16 @@ litb.touchCarousel = function(config) {
 	var cssTranslate3dSupported = supportTransform3d();
 
 	function afterTransition(){
-		if(box.position().left < 0){
-			left.removeClass('disabled');
-		} else{
+		if(box.position().left >= 0 || Math.round(box.position().left) === 0){
+			box.trigger('leftEnd');
 			left.addClass('disabled');
+		} else{
+			left.removeClass('disabled');
 		}
 		
-		if(Math.round(box.position().left) === 0){
-			left.addClass('disabled');
-		}
-
 		if(Math.abs(box.position().left) + container.outerWidth() + 20 >= totalWidth) {
 			right.addClass('disabled');
+			box.trigger('rightEnd');
 		} else {
 			right.removeClass('disabled');
 		}
@@ -159,6 +162,23 @@ litb.touchCarousel = function(config) {
 		
 	}
 
+	if(config.autoPlay){
+		var autoplayTimer = setInterval(function(){
+			moveTo('right');
+		},config.duration * 2);
+		box.bind('rightEnd',function(){
+			clearInterval(autoplayTimer);
+			autoplayTimer = setInterval(function(){
+				moveTo('left');
+			},config.duration * 2);
+		});
+		box.bind('leftEnd',function(){
+			clearInterval(autoplayTimer);
+			autoplayTimer = setInterval(function(){
+				moveTo('right');
+			},config.duration * 2);
+		});
+	}
 	var userAgent = navigator.userAgent.toLowerCase();
 	var clickEvent = (userAgent.indexOf('iphone') != -1 || userAgent.indexOf('ipod') != -1) ? 'tap' : 'click';
 
