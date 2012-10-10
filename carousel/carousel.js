@@ -9,6 +9,8 @@ litb.touchCarousel = function(config) {
 		noTransform3d : false, // 不使用css3 Transform3d
 
 		autoPlay  : false, //自动播放
+		autoPlayDelay : 1000,
+
 		pagingNav : false //显示paging
 	},config);
 
@@ -92,8 +94,38 @@ litb.touchCarousel = function(config) {
 	var container = config.container;
 	container.css('overflow', 'visible');
 	container[0].innerHTML = '<div class="touchcarousel-wrapper">' + container[0].innerHTML + '</div>' + '<a href="#" class="arrow-holder left"><span class="arrow-icon left"></span></a>' + '<a href="#" class="arrow-holder right"><span class="arrow-icon right"></span></a>';
+	var box;
 
-	var box = container.find('ul');
+	if(config.pagingNav){
+		config.itemsPerMove = 1;
+
+		var paging = [];
+		container.find('li').each(function(i){
+			paging.push('<a class="tc-paging-item" href="#">Index</a>'.replace('Index',i));
+		});
+		container[0].innerHTML += '<div class="tc-paging-container">'+
+		    '<div class="tc-paging-centerer">'+
+		        '<div class="tc-paging-centerer-inside">'+
+		        	paging.join('') + 
+		        '</div>'+
+		    '</div>'+
+		'</div>';
+		paging = container.find('a.tc-paging-item');
+		$(paging[0]).addClass('current');
+		container.find('div.tc-paging-centerer-inside').live('click',function(e){
+			e.preventDefault();
+			var target = e.target;
+			paging.removeClass('current');
+			$(target).addClass('current');
+
+			box.animate({
+				left: -(step * parseFloat(target.innerHTML))
+			}, config.duration, 'swing', afterTransition);
+		});
+
+	}
+
+	box = container.find('ul');
 	var left = container.find('.arrow-holder.left');
 	var right = container.find('.arrow-holder.right');
 	var first = box.children(":first");
@@ -122,18 +154,25 @@ litb.touchCarousel = function(config) {
 	var cssTranslate3dSupported = supportTransform3d();
 
 	function afterTransition(){
-		if(box.position().left >= 0 || Math.round(box.position().left) === 0){
+		var iLeft = box.position().left;
+		if( iLeft >= 0 || Math.round(iLeft) === 0){
 			box.trigger('leftEnd');
 			left.addClass('disabled');
 		} else{
 			left.removeClass('disabled');
 		}
 		
-		if(Math.abs(box.position().left) + container.outerWidth() + 20 >= totalWidth) {
+		if(Math.abs(iLeft) + container.outerWidth() + 20 >= totalWidth) {
 			right.addClass('disabled');
 			box.trigger('rightEnd');
 		} else {
 			right.removeClass('disabled');
+		}
+
+		if(config.pagingNav && paging){
+			var index = Math.round(Math.abs(iLeft)/step);
+			paging.removeClass('current');
+			$(paging[index]).addClass('current');
 		}
 	}
 	function moveTo(direction, e) {
@@ -165,20 +204,21 @@ litb.touchCarousel = function(config) {
 	if(config.autoPlay){
 		var autoplayTimer = setInterval(function(){
 			moveTo('right');
-		},config.duration * 2);
+		},config.autoPlayDelay);
 		box.bind('rightEnd',function(){
 			clearInterval(autoplayTimer);
 			autoplayTimer = setInterval(function(){
 				moveTo('left');
-			},config.duration * 2);
+			},config.autoPlayDelay);
 		});
 		box.bind('leftEnd',function(){
 			clearInterval(autoplayTimer);
 			autoplayTimer = setInterval(function(){
 				moveTo('right');
-			},config.duration * 2);
+			},config.autoPlayDelay);
 		});
 	}
+
 	var userAgent = navigator.userAgent.toLowerCase();
 	var clickEvent = (userAgent.indexOf('iphone') != -1 || userAgent.indexOf('ipod') != -1) ? 'tap' : 'click';
 
