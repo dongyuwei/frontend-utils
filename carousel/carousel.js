@@ -1,21 +1,7 @@
 var litb = window.litb || {};
-/**
- * @param  {Object} config
- */
-litb.touchCarousel = function(config) {
-	config = $.extend({
-		duration  : 500, //动画持续时间
-		itemsPerMove : 1, //每次滑动的(图片)个数
-		noTransform3d : false, // 不使用css3 Transform3d
-
-		autoPlay  : false, //自动播放
-		autoPlayDelay : 1000,
-
-		pagingNav : false //显示paging
-	},config);
-
-
-	function supportTransform3d() {
+litb.mobile = litb.mobile || {};
+$.extend(litb.mobile,{
+	supportTransform3d: function(){
 		var supported = false;
 	    var div = $('<div style="position:absolute;">Translate3d Test</div>');
 	    $('body').append(div);
@@ -30,17 +16,14 @@ litb.touchCarousel = function(config) {
 	    supported = (div.offset().left === 3);
 	    div.empty().remove();
 	    return supported;
-	}
-
-	function swipeDirection(x1, x2, y1, y2) {
+	},
+	swipeDirection: function(x1, y1, x2, y2){
 		var xDelta = Math.abs(x1 - x2),
 			yDelta = Math.abs(y1 - y2);
 		return xDelta >= yDelta ? (x1 - x2 > 0 ? 'Left' : 'Right') : (y1 - y2 > 0 ? 'Up' : 'Down');
-	}
-
-	function bindTouchEvent(el, leftCallback, rightCallback) {
-		var touch = {},
-			swipeTimeout;
+	},
+	bindTouchEvent: function (el, leftCallback, rightCallback) {
+		var touch = {}, swipeTimeout;
 
 		function touchStart(e) {
 			e.preventDefault();
@@ -59,7 +42,7 @@ litb.touchCarousel = function(config) {
 			if((touch.x2 && Math.abs(touch.x1 - touch.x2) > 30) || (touch.y2 && Math.abs(touch.y1 - touch.y2) > 30)) {
 				clearTimeout(swipeTimeout);
 				swipeTimeout = setTimeout(function() {
-					var dir = swipeDirection(touch.x1, touch.x2, touch.y1, touch.y2);
+					var dir = litb.mobile.swipeDirection(touch.x1, touch.y1, touch.x2, touch.y2);
 					if(dir === 'Left') {
 						leftCallback();
 					}
@@ -89,8 +72,33 @@ litb.touchCarousel = function(config) {
 		el.bind('touchcancel', function(e) {
 			touchCancel(e.originalEvent);
 		});
+	},
+	transform: function transform(element, dir,dx,duration,transitionEnd) {
+		var style = element[0].style;
+		var distance = dir === 'left' ? element.position().left + dx : element.position().left - dx;
+		style.webkitTransitionDuration = style.MozTransitionDuration = style.msTransitionDuration = style.OTransitionDuration = style.transitionDuration = duration + 'ms';
+		style.transform = style.MozTransform = style.webkitTransform = 'translate3d(' + distance + 'px,0,0)';
+		style.msTransform = style.OTransform = 'translateX(' + distance + 'px)';
+
+		element.bind('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd', transitionEnd);
 	}
-	//---------------------------------------------------------------------\\
+});
+
+/**
+ * @param  {Object} config
+ */
+litb.touchCarousel = function(config) {
+	config = $.extend({
+		duration  : 500, //动画持续时间
+		itemsPerMove : 1, //每次滑动的(图片)个数
+		noTransform3d : false, // 不使用css3 Transform3d
+
+		autoPlay  : false, //自动播放
+		autoPlayDelay : 1000,
+
+		pagingNav : false //显示paging
+	},config);
+
 	var container = config.container;
 	container.css('overflow', 'visible');
 	container[0].innerHTML = '<div class="touchcarousel-wrapper">' + container[0].innerHTML + '</div>' + '<a href="#" class="arrow-holder left"><span class="arrow-icon left"></span></a>' + '<a href="#" class="arrow-holder right"><span class="arrow-icon right"></span></a>';
@@ -132,26 +140,12 @@ litb.touchCarousel = function(config) {
 	var totalWidth = first.outerWidth(true) * box.children().length;
 	box.css('width', totalWidth);
 	box.children(":last").addClass('last');
-
-	var width = first.width();
-	var step = first.outerWidth(true) * config.itemsPerMove;
-
-
 	if(box.position().left === 0) {
 		left.addClass('disabled');
 	}
 
-	function transform(element, dir,dx) {
-		var style = element[0].style;
-		var distance = dir === 'left' ? element.position().left + dx : element.position().left - dx;
-		style.webkitTransitionDuration = style.MozTransitionDuration = style.msTransitionDuration = style.OTransitionDuration = style.transitionDuration = config.duration + 'ms';
-		style.MozTransform = style.webkitTransform = 'translate3d(' + distance + 'px,0,0)';
-		style.msTransform = style.OTransform = 'translateX(' + distance + 'px)';
-
-		element.bind('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd', afterTransition);
-	};
-
-	var cssTranslate3dSupported = supportTransform3d();
+	var width = first.width();
+	var step = first.outerWidth(true) * config.itemsPerMove;
 
 	function afterTransition(){
 		var iLeft = box.position().left;
@@ -175,6 +169,9 @@ litb.touchCarousel = function(config) {
 			$(paging[index]).addClass('current');
 		}
 	}
+
+	var dx = step;
+	var cssTranslate3dSupported = litb.mobile.supportTransform3d();
 	function moveTo(direction, e) {
 		e && e.preventDefault();
 		
@@ -184,7 +181,7 @@ litb.touchCarousel = function(config) {
 		if(direction === 'right' && right.hasClass('disabled')) {
 			return false;
 		}
-		var dx = step;
+		
 		if(direction === 'left' && Math.abs(box.position().left) < step){
 			dx = Math.abs(box.position().left);
 		}
@@ -192,7 +189,7 @@ litb.touchCarousel = function(config) {
 			dx = totalWidth - Math.abs(box.position().left) - container.outerWidth() + 3;
 		}
 		if(cssTranslate3dSupported && !config.noTransform3d){
-			transform(box, direction,dx);
+			litb.mobile.transform(box, direction,dx,config.duration,afterTransition);
 		}else{
 			box.animate({
 				left: (direction === 'left' ? '+=' : '-=') + dx
@@ -230,7 +227,7 @@ litb.touchCarousel = function(config) {
 	});
 
 	//touchmove时反方向滑动
-	bindTouchEvent(box, function(e) {
+	litb.mobile.bindTouchEvent(box, function(e) {
 		moveTo('right');
 	}, function(e) {
 		moveTo('left');
