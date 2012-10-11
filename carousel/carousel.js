@@ -170,7 +170,6 @@ litb.touchCarousel = function(config) {
 		}
 	}
 
-	var dx = step;
 	var cssTranslate3dSupported = litb.mobile.supportTransform3d();
 	function moveTo(direction, e) {
 		e && e.preventDefault();
@@ -181,7 +180,7 @@ litb.touchCarousel = function(config) {
 		if(direction === 'right' && right.hasClass('disabled')) {
 			return false;
 		}
-		
+		var dx = step;
 		if(direction === 'left' && Math.abs(box.position().left) < step){
 			dx = Math.abs(box.position().left);
 		}
