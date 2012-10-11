@@ -73,13 +73,13 @@ $.extend(litb.mobile,{
 			touchCancel(e.originalEvent);
 		});
 	},
-	transform: function transform(element, dir,dx,duration,transitionEnd) {
+	transform: function transform(element, dir,dx,duration,transitionEnd,distance) {
+		element.unbind('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd');
 		var style = element[0].style;
-		var distance = dir === 'left' ? element.position().left + dx : element.position().left - dx;
+		distance = typeof distance === "number" ? distance : (dir === 'left' ? element.position().left + dx : element.position().left - dx);
 		style.webkitTransitionDuration = style.MozTransitionDuration = style.msTransitionDuration = style.OTransitionDuration = style.transitionDuration = duration + 'ms';
 		style.transform = style.MozTransform = style.webkitTransform = 'translate3d(' + distance + 'px,0,0)';
 		style.msTransform = style.OTransform = 'translateX(' + distance + 'px)';
-
 		element.bind('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd', transitionEnd);
 	}
 });
@@ -123,12 +123,20 @@ litb.touchCarousel = function(config) {
 		container.find('div.tc-paging-centerer-inside').live('click',function(e){
 			e.preventDefault();
 			var target = e.target;
-			paging.removeClass('current');
-			$(target).addClass('current');
 
-			box.animate({
-				left: -(step * parseFloat(target.innerHTML))
-			}, config.duration, 'swing', afterTransition);
+			if(autoplayTimer){
+				clearInterval(autoplayTimer);
+				autoplayTimer = 0;
+				box.unbind('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd');
+			}
+			
+			if(cssTranslate3dSupported && !config.noTransform3d){
+				litb.mobile.transform(box, 'left',0,config.duration,afterTransition,-(step * parseFloat(target.innerHTML)));
+			}else{
+				box.animate({
+					left: -(step * parseFloat(target.innerHTML))
+				}, config.duration, 'swing', afterTransition);
+			}
 		});
 
 	}
@@ -194,24 +202,26 @@ litb.touchCarousel = function(config) {
 				left: (direction === 'left' ? '+=' : '-=') + dx
 			}, config.duration, 'swing', afterTransition);
 		}
-		
 	}
 
 	if(config.autoPlay){
-		var autoplayTimer = setInterval(function(){
+		var autoplayTimer;
+		autoplayTimer = setInterval(function(){
 			moveTo('right');
 		},config.autoPlayDelay);
+		box.unbind('rightEnd');
+		box.unbind('leftEnd');
 		box.bind('rightEnd',function(){
 			clearInterval(autoplayTimer);
-			autoplayTimer = setInterval(function(){
+			autoplayTimer && (autoplayTimer = setInterval(function(){
 				moveTo('left');
-			},config.autoPlayDelay);
+			},config.autoPlayDelay));
 		});
 		box.bind('leftEnd',function(){
 			clearInterval(autoplayTimer);
-			autoplayTimer = setInterval(function(){
+			autoplayTimer && (autoplayTimer = setInterval(function(){
 				moveTo('right');
-			},config.autoPlayDelay);
+			},config.autoPlayDelay));
 		});
 	}
 
