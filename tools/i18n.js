@@ -18,8 +18,10 @@ function parseHTML(uri) {
 	// });
 	
     $ = cheerio.load(fs.readFileSync(uri, 'utf-8'));
-    $('table').each(function(){
-    	console.log(this);
+    $('table').each(function(i,item){
+    	$($('tr>td',$(item))).each(function(){
+    		console.log($(this).html())
+    	});
     });
 }
 
