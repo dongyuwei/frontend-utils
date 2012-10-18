@@ -10,7 +10,9 @@
  *   http://www.appelsiini.net/projects/lazyload
  *
  * Version:  1.8.0
- *
+ * 
+ * @see https://github.com/tuupola/jquery_lazyload
+ * 
  * Modified by dongyuwei@lightinthebox.com, since 2012-08-29
  * dongyuwei's Modification:
  * 1 adjust for jquery v1.3.1(data api has bug?)
@@ -18,6 +20,9 @@
  * 3 `scroll` event optimization
  * 4 ipad support(`touchmove` event)
  * 5 unbind `scroll` event after all imgs loaded
+ * 6 taobao's BigRender support(lazy render the html in `TEXTAREA` ) 
+ * 7 select all lazy-rendered img and textarea by `data-lazy` Property , which is $("[data-lazy]") in jQuery;
+ * 8 all lazy-rendered img and textarea should have `lazy-render` class
  *
  */
 (function($, window) {
@@ -32,8 +37,8 @@
             event           : "scroll",
             effect          : "show",
             container       : window,
-            data_attribute  : "original",
-            skip_invisible  : true,
+            data_attribute  : "src",
+            skip_invisible  : false,
             appear          : null,
             load            : null,
             timer           : 30
@@ -41,13 +46,14 @@
 
         function update() {
             var counter = 0;
-      
+
             elements.each(function() {
                 var $this = $(this);
 
                 if (settings.skip_invisible && !$this.is(":visible")) {
                     return;
                 }
+
                 if ($.abovethetop(this, settings) ||
                     $.leftofbegin(this, settings)) {
                         /* Nothing. */
@@ -96,10 +102,62 @@
             $container.bind('scroll', scrollMonitor);
         }
 
+        function renderTextareaContent(area) {
+            area.removeAttribute('class');
+            var content = document.createElement('div');
+            extractScript(area.value,function(html,js){
+                content.innerHTML = html;
+                area.parentNode.insertBefore(content, area);
+                area.parentNode.removeChild(area);
+                execScript(js);
+                update();
+            });
+        }
+
+        function execScript(scripts){
+            if (window.execScript){
+                window.execScript(scripts);
+            } else {
+                window.eval(scripts);
+            }
+        }
+
+        function extractScript(text,callback) {
+            var scripts = [];
+            text = text.replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, function(){
+                scripts.push(arguments[1]);
+                return '';
+            });
+            callback(text,scripts.join(';'));
+        }
+
+        function loaded(self,$self){
+            self.loaded = true;
+            $self.removeClass('lazy-render');
+            
+            $self[0].removeAttribute('data-' + settings.data_attribute);
+            $self.unbind('load');
+
+            /* Remove image from array so it is not looped next time. */
+            var temp = $.grep(elements, function(element) {
+                return !element.loaded;
+            });
+            elements = $(temp);
+
+            if(elements.length === 0){
+                $container.unbind('scroll', scrollMonitor);
+            }
+
+            if (settings.load) {
+                var elements_left = elements.length;
+                settings.load.call(self, elements_left, settings);
+            }
+        }
+
         this.each(function() {
             var self = this;
             var $self = $(self);
-
+            var tag ;
             self.loaded = false;
 
             /* When appear is triggered load original image. */
@@ -109,34 +167,24 @@
                         var elements_left = elements.length;
                         settings.appear.call(self, elements_left, settings);
                     }
+                    tag = self.tagName.toUpperCase();
 
-                    var src = $self.attr('data-' + settings.data_attribute);
-                    $self
-                        .bind("load", function() {
-                            self.loaded = true;
-                            $self[0].removeAttribute('data-' + settings.data_attribute);
-                            $self.unbind('load');
-
-                            /* Remove image from array so it is not looped next time. */
-                            var temp = $.grep(elements, function(element) {
-                                return !element.loaded;
-                            });
-                            elements = $(temp);
-
-                            if(elements.length === 0){
-                                $container.unbind('scroll', scrollMonitor);
-                            }
-
-                            if (settings.load) {
-                                var elements_left = elements.length;
-                                settings.load.call(self, elements_left, settings);
-                            }
-                        })
-                        .bind('error',function(){//reload img once again!
-                            $self.attr("src", src);
-                            $self.unbind('error');
-                        })
-                        .attr("src", src);
+                    if(tag === 'TEXTAREA'){
+                        renderTextareaContent(self);
+                        loaded(self,$self);
+                    }
+                    if(tag === 'IMG'){
+                        var src = $self.attr('data-' + settings.data_attribute);
+                        $self
+                            .bind("load", function(){
+                                loaded(self,$self);
+                            })
+                            .bind('error',function(){//reload img once again!
+                                $self.attr("src", src);
+                                $self.unbind('error');
+                            })
+                            .attr("src", src);
+                    }
                 }
             });
         });
@@ -152,7 +200,9 @@
         });
 
         /* Force initial check if images should appear. */
-        update();
+        $(document).ready(function() {
+            update();
+        });
         
         return this;
     };
@@ -164,7 +214,6 @@
         var fold;
         
         if (settings.container === undefined || settings.container === window) {
-            //window.innerHeight ? window.innerHeight : $window.height()
             fold = $window.height() + $window.scrollTop();
         } else {
             fold = $(settings.container).offset().top + $(settings.container).height();
@@ -210,19 +259,20 @@
     };
 
     $.inviewport = function(element, settings) {
-         return !$.rightofscreen(element, settings) && !$.leftofscreen(element, settings) && 
+         return !$.rightoffold(element, settings) && !$.leftofbegin(element, settings) &&
                 !$.belowthefold(element, settings) && !$.abovethetop(element, settings);
      };
 
     /* Custom selectors for your convenience.   */
-    /* Use as $("img:below-the-fold").something() */
+    /* Use as $("img:below-the-fold").something() or */
+    /* $("img").filter(":below-the-fold").something() which is faster */
 
     $.extend($.expr[':'], {
         "below-the-fold" : function(a) { return $.belowthefold(a, {threshold : 0}); },
         "above-the-top"  : function(a) { return !$.belowthefold(a, {threshold : 0}); },
         "right-of-screen": function(a) { return $.rightoffold(a, {threshold : 0}); },
         "left-of-screen" : function(a) { return !$.rightoffold(a, {threshold : 0}); },
-        "in-viewport"    : function(a) { return !$.inviewport(a, {threshold : 0}); },
+        "in-viewport"    : function(a) { return $.inviewport(a, {threshold : 0}); },
         /* Maintain BC for couple of versions. */
         "above-the-fold" : function(a) { return !$.belowthefold(a, {threshold : 0}); },
         "right-of-fold"  : function(a) { return $.rightoffold(a, {threshold : 0}); },
@@ -230,9 +280,6 @@
     });
 
     $(document).ready(function(){
-        $("img[data-src]").lazyload({
-            data_attribute  : 'src',
-            skip_invisible  : false
-        });
+        $("[data-lazy]").lazyload();
     }); 
 })(jQuery, window);
