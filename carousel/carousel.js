@@ -166,13 +166,6 @@ litb.touchCarousel = function(config) {
 	function afterTransition(){
 		var iLeft = box.position().left;
 		if( iLeft >= 0 || Math.round(iLeft) === 0){
-			// if(cssTranslate3dSupported && !config.noTransform3d){
-			// 	litb.mobile.transform(box, 'left',0,100,afterTransition,0);
-			// }else{
-			// 	box.animate({
-			// 		left: 0
-			// 	}, 100, 'swing');
-			// }
 			box.trigger('leftEnd');
 			left.addClass('disabled');
 		} else{
