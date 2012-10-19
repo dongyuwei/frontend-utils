@@ -134,7 +134,7 @@
         function loaded(self,$self){
             self.loaded = true;
             $self.removeClass('lazy-render');
-            
+
             $self[0].removeAttribute('data-' + settings.data_attribute);
             $self.unbind('load');
 

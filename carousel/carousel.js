@@ -26,7 +26,7 @@ $.extend(litb.mobile,{
 		var touch = {}, swipeTimeout;
 
 		function touchStart(e) {
-			e.preventDefault();
+			touch.start = new Date().getTime();
 			touch.x1 = e.touches[0].pageX;
 			touch.y1 = e.touches[0].pageY;
 		}
@@ -38,18 +38,23 @@ $.extend(litb.mobile,{
 		}
 
 		function touchEnd(e) {
-			e.preventDefault();
+			typeof touch.x2 === 'number' && e.preventDefault();
+
+			touch.end = new Date().getTime();
+			touch.speed = litb.mobile.speed(touch.x1,touch.y1,touch.x2,touch.y2 , touch.end - touch.start);
+			e.touch = touch;
+
 			if((touch.x2 && Math.abs(touch.x1 - touch.x2) > 30) || (touch.y2 && Math.abs(touch.y1 - touch.y2) > 30)) {
 				clearTimeout(swipeTimeout);
 				swipeTimeout = setTimeout(function() {
 					var dir = litb.mobile.swipeDirection(touch.x1, touch.y1, touch.x2, touch.y2);
 					if(dir === 'Left') {
-						leftCallback();
+						leftCallback(e);
 					}
 					if(dir === 'Right') {
-						rightCallback();
+						rightCallback(e);
 					}
-					touch = {};
+					e.touch = touch = {};
 				}, 0);
 			}
 		}
@@ -81,6 +86,9 @@ $.extend(litb.mobile,{
 		style.transform = style.MozTransform = style.webkitTransform = 'translate3d(' + distance + 'px,0,0)';
 		style.msTransform = style.OTransform = 'translateX(' + distance + 'px)';
 		element.bind('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd', transitionEnd);
+	},
+	speed:function(x1,y1,x2,y2,time){
+		return Math.sqrt( Math.pow(Math.abs(x2 - x1),2) +  Math.pow(Math.abs(y2 - y1),2))/time;
 	}
 });
 
@@ -158,6 +166,13 @@ litb.touchCarousel = function(config) {
 	function afterTransition(){
 		var iLeft = box.position().left;
 		if( iLeft >= 0 || Math.round(iLeft) === 0){
+			// if(cssTranslate3dSupported && !config.noTransform3d){
+			// 	litb.mobile.transform(box, 'left',0,100,afterTransition,0);
+			// }else{
+			// 	box.animate({
+			// 		left: 0
+			// 	}, 100, 'swing');
+			// }
 			box.trigger('leftEnd');
 			left.addClass('disabled');
 		} else{
@@ -179,8 +194,8 @@ litb.touchCarousel = function(config) {
 	}
 
 	var cssTranslate3dSupported = litb.mobile.supportTransform3d();
-	function moveTo(direction, e) {
-		e && e.preventDefault();
+	function moveTo(direction,e) {
+		e.preventDefault();
 		
 		if(direction === 'left' && left.hasClass('disabled')) {
 			return false;
@@ -188,13 +203,19 @@ litb.touchCarousel = function(config) {
 		if(direction === 'right' && right.hasClass('disabled')) {
 			return false;
 		}
+
 		var dx = step;
-		if(direction === 'left' && Math.abs(box.position().left) < step){
+		if(e.touch){//touchmove
+			dx = e.touch.speed * config.duration;
+		}
+
+		if(direction === 'left' && Math.abs(box.position().left) < Math.max(step,dx) ){
 			dx = Math.abs(box.position().left);
 		}
-		if(direction === 'right' && Math.abs(box.position().left) + container.outerWidth() + step > totalWidth){
+		if(direction === 'right' && Math.abs(box.position().left) + container.outerWidth() + Math.max(step,dx) > totalWidth){
 			dx = totalWidth - Math.abs(box.position().left) - container.outerWidth() + 3;
 		}
+
 		if(cssTranslate3dSupported && !config.noTransform3d){
 			litb.mobile.transform(box, direction,dx,config.duration,afterTransition);
 		}else{
@@ -237,8 +258,8 @@ litb.touchCarousel = function(config) {
 
 	//touchmove时反方向滑动
 	litb.mobile.bindTouchEvent(box, function(e) {
-		moveTo('right');
+		moveTo('right',e);
 	}, function(e) {
-		moveTo('left');
+		moveTo('left',e);
 	});
 };
