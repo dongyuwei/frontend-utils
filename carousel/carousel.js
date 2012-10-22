@@ -152,6 +152,12 @@ litb.touchCarousel = function(config) {
 	box = container.find('ul');
 	var left = container.find('.arrow-holder.left');
 	var right = container.find('.arrow-holder.right');
+
+	if(config.autoPlay){
+		left.hide();
+		right.hide();
+	}
+
 	var first = box.children(":first");
 	var totalWidth = first.outerWidth(true) * box.children().length;
 	box.css('width', totalWidth);
