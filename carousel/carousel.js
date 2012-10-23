@@ -85,6 +85,8 @@ $.extend(litb.mobile,{
 		style.webkitTransitionDuration = style.MozTransitionDuration = style.msTransitionDuration = style.OTransitionDuration = style.transitionDuration = duration + 'ms';
 		style.transform = style.MozTransform = style.webkitTransform = 'translate3d(' + distance + 'px,0,0)';
 		style.msTransform = style.OTransform = 'translateX(' + distance + 'px)';
+		style.transitionTimingFunction = style.webkitTransitionTimingFunction = style.mozTransitionTimingFunction = style.msTransitionTimingFunction = style.oTransitionTimingFunction = 'ease-in-out';// cubic-bezier(.17,.67,.83,.67)
+
 		element.bind('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd', transitionEnd);
 	},
 	speed:function(x1,y1,x2,y2,time){
@@ -251,6 +253,7 @@ litb.touchCarousel = function(config) {
 	left.bind(clickEvent, function(e) {
 		moveTo('left', e);
 	});
+
 	right.bind(clickEvent, function(e) {
 		moveTo('right', e);
 	});
