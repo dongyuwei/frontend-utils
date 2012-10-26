@@ -32,7 +32,6 @@ function embedded2Linked(uri){
 		fs.writeFileSync(uri, sContent);
 	}
 	sContent = sCSS = hash = file = handled = null;
-	process.exit(1);
 }
 
 function walk(uri, filter) {
