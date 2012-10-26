@@ -1,4 +1,3 @@
-//  /private/var/www/vhosts/testrelease.lightinthebox.com/httpdocs/resource/dev_v2/templateCSS/
 var path = require('path');
 var fs = require('fs');
 var crypto = require('crypto');
@@ -19,18 +18,12 @@ function embedded2Linked(uri){
 	sContent = sContent.replace(/<style>(.*)<\/style>/g,function(){
 		if(RegExp.$1){
 			handled = true;
-
 			sCSS = new Buffer(RegExp.$1);
-			hash = md5Hash(sCSS);
-			file = uri.replace('.php', '_' + hash + '.css');
-			fs.writeFileSync(file, sCSS);
+			file = uri.replace('.php', '.css');
+			fs.writeFileSync(file, removeBOMChar(sCSS));
 			return '';
 		}
 	});
-	if(handled){
-		sContent = '<link rel="stylesheet" type="text/css" href="' + file + '"' + sContent;
-		fs.writeFileSync(uri, sContent);
-	}
 	sContent = sCSS = hash = file = handled = null;
 }
 
@@ -41,7 +34,6 @@ function walk(uri, filter) {
 			//转换成绝对路径
 			uri = path.resolve(uri);
 			if(path.extname(uri) === '.php') {
-				console.log(uri);
 				embedded2Linked(uri);
 			}
 		}
@@ -53,13 +45,9 @@ function walk(uri, filter) {
 	}
 }
 
+//删除文件UTF-8 BOM 头
 function removeBOMChar(str) {
 	return str.replace(/^\xef\xbb\xbf/, '');
-};
-
-//删除文件UTF-8 BOM 头
-function removeFileBOMChar(filePath) {
-	return removeBOMChar(fs.readFileSync(filePath));
 };
 
 function md5Hash(sCSS){
