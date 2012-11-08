@@ -123,8 +123,7 @@
 				$(paging[0]).addClass('current');
 				container.find('div.tc-paging-centerer-inside').on('click', function(e) {
 					e.preventDefault();
-					var target = e.target;
-
+					
 					if(autoplayTimer) {
 						clearInterval(autoplayTimer);
 						autoplayTimer = 0;
@@ -132,7 +131,7 @@
 					}
 
 					box.animate({
-						left: -(step * parseFloat(target.innerHTML))
+						left: -(step * parseFloat(e.target.innerHTML))
 					}, config.duration, 'swing', afterTransition);
 				});
 			}
