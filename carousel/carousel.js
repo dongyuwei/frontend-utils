@@ -13,7 +13,7 @@ $.extend(litb.mobile,{
 	        '-o-transform' : "translate3d(3px,0,0)",
 	        '-ms-transform' : "translate3d(3px,0,0)"
 	    });
-	    supported = (div.offset().left === 3);
+	    supported = (div.offset().left - $(div[0].offsetParent).offset().left === 3);
 	    div.empty().remove();
 	    return supported;
 	},
