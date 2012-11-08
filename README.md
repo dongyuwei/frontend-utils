@@ -20,6 +20,12 @@ My modification:
  5. 支持css3 translate3d（不支持时自动降级到普通动画）。
 
 **carousel for zepto.js ([demo](http://session.im/lightinthebox/carousel/zepto/slide.html))**
+```
+$('#carousel-demo').touchCarousel({
+   itemsPerMove: 2,
+   duration: 500
+});
+```
 
 lightinthebox/thirdpartylinks/chrome_dev_tools/HAREntry.js: 
  **给chrome_dev_tools打了补丁，使其导出HTTP HAR文件时附加上请求的initiator信息（用于收集统计外链请求之源）**
