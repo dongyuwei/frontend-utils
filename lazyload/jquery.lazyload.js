@@ -174,9 +174,15 @@
                         loaded(self,$self);
                     }
                     if(tag === 'IMG'){
+                        $self.is(":visible") && $self.css('opacity',0);
+                        
                         var src = $self.attr('data-' + settings.data_attribute);
                         $self
                             .bind("load", function(){
+                                $self.is(":visible") && $self.animate({
+                                    'opacity': 1
+                                }, 300);
+
                                 loaded(self,$self);
                             })
                             .bind('error',function(){//reload img once again!
