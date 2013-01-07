@@ -9,10 +9,8 @@
  * Project home:
  *   http://www.appelsiini.net/projects/lazyload
  *
- * Version:  1.8.0
- * 
- * @see https://github.com/tuupola/jquery_lazyload
- * 
+ * Version:  1.8.3
+ *
  * Modified by dongyuwei@lightinthebox.com, since 2012-08-29
  * dongyuwei's Modification:
  * 1 adjust for jquery v1.3.1(data api has bug?)
@@ -20,12 +18,8 @@
  * 3 `scroll` event optimization
  * 4 ipad support(`touchmove` event)
  * 5 unbind `scroll` event after all imgs loaded
- * 6 taobao's BigRender support(lazy render the html in `TEXTAREA` ) 
- * 7 select all lazy-rendered img and textarea by `data-lazy` Property , which is $("[data-lazy]") in jQuery;
- * 8 all lazy-rendered img and textarea should have `lazy-render` class
- *
  */
-(function($, window) {
+(function($, window, document, undefined) {
     var $window = $(window);
 
     $.fn.lazyload = function(options) {
@@ -37,8 +31,8 @@
             event           : "scroll",
             effect          : "show",
             container       : window,
-            data_attribute  : "src",
-            skip_invisible  : false,
+            data_attribute  : "original",
+            skip_invisible  : true,
             appear          : null,
             load            : null,
             timer           : 30
@@ -46,20 +40,20 @@
 
         function update() {
             var counter = 0;
-
+            
             elements.each(function() {
                 var $this = $(this);
-
                 if (settings.skip_invisible && !$this.is(":visible")) {
                     return;
                 }
-
                 if ($.abovethetop(this, settings) ||
                     $.leftofbegin(this, settings)) {
                         /* Nothing. */
                 } else if (!$.belowthefold(this, settings) &&
                     !$.rightoffold(this, settings)) {
                         $this.trigger("appear");
+                        /* if we found an image we'll load, reset the counter */
+                        counter = 0;
                 } else {
                     if (++counter > settings.failure_limit) {
                         return false;
@@ -84,14 +78,13 @@
         }
 
         /* Cache container as jQuery as object. */
-        $container = (settings.container === undefined ||
-                      settings.container === window) ? $window : $(settings.container);
+        $container = (settings.container === undefined || 
+            settings.container === window) ? $window : $(settings.container);
 
-        /* Fire one scroll event per scroll. Not one scroll event per image. */
         var scrollMonitor;
         if (0 === settings.event.indexOf("scroll")) {
             var timer;
-            scrollMonitor = function(event) {
+            scrollMonitor = function() {
                 if(timer){
                     clearTimeout(timer);
                 }
@@ -99,65 +92,13 @@
                     update();
                 },settings.timer);
             };
-            $container.bind('scroll', scrollMonitor);
-        }
-
-        function renderTextareaContent(area) {
-            area.removeAttribute('class');
-            var content = document.createElement('div');
-            extractScript(area.value,function(html,js){
-                content.innerHTML = html;
-                area.parentNode.insertBefore(content, area);
-                area.parentNode.removeChild(area);
-                execScript(js);
-                update();
-            });
-        }
-
-        function execScript(scripts){
-            if (window.execScript){
-                window.execScript(scripts);
-            } else {
-                window.eval(scripts);
-            }
-        }
-
-        function extractScript(text,callback) {
-            var scripts = [];
-            text = text.replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, function(){
-                scripts.push(arguments[1]);
-                return '';
-            });
-            callback(text,scripts.join(';'));
-        }
-
-        function loaded(self,$self){
-            self.loaded = true;
-            $self.removeClass('lazy-render');
-
-            $self[0].removeAttribute('data-' + settings.data_attribute);
-            $self.unbind('load');
-
-            /* Remove image from array so it is not looped next time. */
-            var temp = $.grep(elements, function(element) {
-                return !element.loaded;
-            });
-            elements = $(temp);
-
-            if(elements.length === 0){
-                $container.unbind('scroll', scrollMonitor);
-            }
-
-            if (settings.load) {
-                var elements_left = elements.length;
-                settings.load.call(self, elements_left, settings);
-            }
+            $container.bind(settings.event, scrollMonitor);
         }
 
         this.each(function() {
             var self = this;
             var $self = $(self);
-            var tag ;
+
             self.loaded = false;
 
             /* When appear is triggered load original image. */
@@ -167,30 +108,40 @@
                         var elements_left = elements.length;
                         settings.appear.call(self, elements_left, settings);
                     }
-                    tag = self.tagName.toUpperCase();
+                    
+                    $self.is(":visible") && $self.css('opacity',0);
+                    
+                    var src = $self.attr('data-' + settings.data_attribute);
+                    $self
+                        .bind("load", function() {
+                            self.loaded = true;
+                            $self[0].removeAttribute('data-' + settings.data_attribute);
+                            $self.unbind('load');
+                            
+                            $self.is(":visible") && $self.animate({
+                                'opacity': 1
+                            }, 300);
 
-                    if(tag === 'TEXTAREA'){
-                        renderTextareaContent(self);
-                        loaded(self,$self);
-                    }
-                    if(tag === 'IMG'){
-                        $self.is(":visible") && $self.css('opacity',0);
-                        
-                        var src = $self.attr('data-' + settings.data_attribute);
-                        $self
-                            .bind("load", function(){
-                                $self.is(":visible") && $self.animate({
-                                    'opacity': 1
-                                }, 300);
+                            /* Remove image from array so it is not looped next time. */
+                            var temp = $.grep(elements, function(element) {
+                                return !element.loaded;
+                            });
+                            elements = $(temp);
 
-                                loaded(self,$self);
-                            })
-                            .bind('error',function(){//reload img once again!
-                                $self.attr("src", src);
-                                $self.unbind('error');
-                            })
-                            .attr("src", src);
-                    }
+                            if(elements.length === 0){
+                                $container.unbind('scroll', scrollMonitor);
+                            }
+
+                            if (settings.load) {
+                                var elements_left = elements.length;
+                                settings.load.call(self, elements_left, settings);
+                            }
+                        })
+                        .bind('error',function(){//reload img once again!
+                            $self.attr("src", src);
+                            $self.unbind('error');
+                        })
+                        .attr("src", src);
                 }
             });
         });
@@ -204,12 +155,22 @@
         $window.bind("touchmove", function(event) {
             update();
         });
+              
+        /* With IOS5 force loading images when navigating with back button. */
+        /* Non optimal workaround. */
+        if ((/iphone|ipod|ipad.*os 5/gi).test(navigator.appVersion)) {
+            $window.bind("pageshow", function(event) {
+                if (event.originalEvent.persisted) {
+                    elements.each(function() {
+                        $(this).trigger("appear");
+                    });
+                }
+            });
+        }
 
         /* Force initial check if images should appear. */
-        $(document).ready(function() {
-            update();
-        });
-        
+        update();
+
         return this;
     };
 
@@ -286,6 +247,11 @@
     });
 
     $(document).ready(function(){
-        $("[data-lazy]").lazyload();
+        $("img[data-src]").lazyload({
+            data_attribute  : 'src',
+            skip_invisible  : false,
+            threshold       : 200,
+            failure_limit   : 20
+        });
     }); 
-})(jQuery, window);
+})(jQuery, window, document);
