@@ -170,6 +170,11 @@
 
         /* Force initial check if images should appear. */
         update();
+        
+        //ensure update
+        $(window).load(function(){
+            update();
+        });
 
         return this;
     };
