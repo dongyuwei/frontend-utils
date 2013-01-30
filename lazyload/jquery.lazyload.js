@@ -138,8 +138,8 @@
                             }
                         })
                         .bind('error',function(){//reload img once again!
-                            $self.attr("src", src);
                             $self.unbind('error');
+                            $self.attr("src", src);
                         })
                         .attr("src", src);
                 }
