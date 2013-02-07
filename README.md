@@ -21,7 +21,7 @@ My modification:
 
 **carousel for zepto.js ([demo](http://session.im/lightinthebox/carousel/zepto/slide.html))**
 ```
-$('#carousel-demo').touchCarousel({
+$('#carousel-demo').carousel({
    itemsPerMove: 2,
    duration: 500
 });

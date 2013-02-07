@@ -94,7 +94,7 @@
 	});
 
 	$.extend($.fn, {
-		touchCarousel: function(config) {
+		carousel: function(config) {
 			config = $.extend({
 				duration: 500,
 				//动画持续时间
@@ -109,7 +109,7 @@
 
 			var container = this;
 			container.css('overflow', 'visible');
-			container[0].innerHTML = '<div class="touchcarousel-wrapper">' + container[0].innerHTML + '</div>' + '<a href="#" class="arrow-holder left"><span class="arrow-icon left"></span></a>' + '<a href="#" class="arrow-holder right"><span class="arrow-icon right"></span></a>';
+			container[0].innerHTML = '<div class="carousel-wrapper">' + container[0].innerHTML + '</div>' + '<a href="#" class="arrow-holder left"><span class="arrow-icon left"></span></a>' + '<a href="#" class="arrow-holder right"><span class="arrow-icon right"></span></a>';
 			var box;
 
 			if(config.pagingNav) {

@@ -1,32 +1,32 @@
-.touchcarousel {
+.carousel {
 	position: relative;
 	width: 92%;
 	height: 400px;
 	overflow: hidden;
 	margin: 10px auto;
 }
-.touchcarousel .touchcarousel-container {
+.carousel .carousel-container {
 	position: relative;
 	margin: 0;
 	padding: 0;
 	list-style: none;
 	left: 0
 }
-.touchcarousel .touchcarousel-wrapper {
+.carousel .carousel-wrapper {
 	position: relative;
 	overflow: hidden;
 	width: 100%;
 	height: 100%
 }
-.touchcarousel .touchcarousel-item {
+.carousel .carousel-item {
 	margin: 1px auto;
 	padding: 0;
 	float: left
 }
-.touchcarousel .touchcarousel-item.last {
+.carousel .carousel-item.last {
 	margin-right: 0 !important
 }
-.touchcarousel .arrow-holder {
+.carousel .arrow-holder {
 	height: 100%;
 	width: 45px;
 	position: absolute;
@@ -35,13 +35,13 @@
 	cursor: pointer;
 	z-index: 25
 }
-.touchcarousel .arrow-holder.left {
+.carousel .arrow-holder.left {
 	left: 0
 }
-.touchcarousel .arrow-holder.right {
+.carousel .arrow-holder.right {
 	right: 0
 }
-.touchcarousel .arrow-icon {
+.carousel .arrow-icon {
 	width: 45px;
 	height: 90px;
 	top: 50%;
@@ -49,100 +49,100 @@
 	position: absolute;
 	cursor: pointer
 }
-.touchcarousel .arrow-holder.disabled {
+.carousel .arrow-holder.disabled {
 	cursor: default
 }
-.touchcarousel .arrow-holder.disabled .arrow-icon {
+.carousel .arrow-holder.disabled .arrow-icon {
 	cursor: default
 }
-.touchcarousel .tc-paging-container {
+.carousel .tc-paging-container {
 	width: 100%;
 	overflow: hidden;
 	position: absolute;
 	margin-top: -210px;
 	z-index: 25
 }
-.touchcarousel .tc-paging-centerer {
+.carousel .tc-paging-centerer {
 	float: left;
 	position: relative;
 	left: 50%
 }
-.touchcarousel .tc-paging-centerer-inside {
+.carousel .tc-paging-centerer-inside {
 	float: left;
 	position: relative;
 	left: -50%
 }
-.touchcarousel .tc-paging-item {
+.carousel .tc-paging-item {
 	float: left;
 	cursor: pointer;
 	position: relative;
 	display: block;
 	text-indent: -9999px
 }
-.touchcarousel .grab-cursor {
+.carousel .grab-cursor {
 	cursor: url(grab.png) 8 8, move
 }
-.touchcarousel .grabbing-cursor {
+.carousel .grabbing-cursor {
 	cursor: url(grabbing.png) 8 8, move
 }
-.touchcarousel .auto-cursor {
+.carousel .auto-cursor {
 	cursor: auto
 }
 
-.touchcarousel .arrow-icon {
+.carousel .arrow-icon {
 	background-image: url('sprite-gb.png');
 	background-repeat: no-repeat;
 	width: 11px;
 	height: 19px;
 	margin-top: -9px
 }
-.touchcarousel .arrow-holder {
+.carousel .arrow-holder {
 	width: 19px;
 	height: 100%;
 	-moz-opacity: 1;
 	-webkit-opacity: 1;
 	opacity: 1
 }
-.touchcarousel .arrow-holder.left {
+.carousel .arrow-holder.left {
 	left: -20px
 }
-.touchcarousel .arrow-holder.right {
+.carousel .arrow-holder.right {
 	right: -20px
 }
-.touchcarousel .arrow-icon.left {
+.carousel .arrow-icon.left {
 	left: 0;
 	background-position: -6px -15px
 }
-.touchcarousel .arrow-icon.right {
+.carousel .arrow-icon.right {
 	right: 0;
 	background-position: -186px -15px
 }
-.touchcarousel .arrow-holder:hover .arrow-icon.left {
+.carousel .arrow-holder:hover .arrow-icon.left {
 	background-position: -36px -15px
 }
-.touchcarousel .arrow-holder:hover .arrow-icon.right {
+.carousel .arrow-holder:hover .arrow-icon.right {
 	background-position: -156px -15px
 }
-.touchcarousel .arrow-holder.disabled .arrow-icon.left {
+.carousel .arrow-holder.disabled .arrow-icon.left {
 	background-position: -66px -15px
 }
-.touchcarousel .arrow-holder.disabled .arrow-icon.right {
+.carousel .arrow-holder.disabled .arrow-icon.right {
 	background-position: -126px -15px
 }
-.touchcarousel .arrow-holder:hover {
+.carousel .arrow-holder:hover {
 	-moz-opacity: 1;
 	-webkit-opacity: 1;
 	opacity: 1
 }
-.touchcarousel .arrow-holder:active .arrow-icon {
+.carousel .arrow-holder:active .arrow-icon {
 	margin-top: -8px
 }
-.touchcarousel .arrow-holder.disabled {
+.carousel .arrow-holder.disabled {
 	-moz-opacity: 1;
 	-webkit-opacity: 1;
 	opacity: 1
 }
-.touchcarousel .tc-paging-item {
+.carousel .tc-paging-item {
 	background: url('sprite-gb.png') no-repeat -95px -4px;
 	width: 16px;
 	height: 16px;
@@ -150,10 +150,10 @@
 	-webkit-opacity: .8;
 	opacity: .8
 }
-.touchcarousel .tc-paging-item.current {
+.carousel .tc-paging-item.current {
 	background: url('sprite-gb.png') no-repeat -95px -22px
 }
-.touchcarousel .tc-paging-item:hover {
+.carousel .tc-paging-item:hover {
 	-moz-opacity: 1;
 	-webkit-opacity: 1;
 	opacity: 1
