@@ -46,7 +46,7 @@
                 if (autoplayTimer) {
                     clearInterval(autoplayTimer);
                     autoplayTimer = 0;
-                    box.unbind('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd');
+                    box.off('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd');
                 }
 
                 if (cssTranslate3dSupported && !config.noTransform3d) {
@@ -141,15 +141,15 @@
             autoplayTimer = setInterval(function() {
                 moveTo('right');
             }, config.autoPlayDelay);
-            box.unbind('rightEnd');
-            box.unbind('leftEnd');
-            box.bind('rightEnd', function() {
+            box.off('rightEnd');
+            box.off('leftEnd');
+            box.on('rightEnd', function() {
                 clearInterval(autoplayTimer);
                 autoplayTimer && (autoplayTimer = setInterval(function() {
                     moveTo('left');
                 }, config.autoPlayDelay));
             });
-            box.bind('leftEnd', function() {
+            box.on('leftEnd', function() {
                 clearInterval(autoplayTimer);
                 autoplayTimer && (autoplayTimer = setInterval(function() {
                     moveTo('right');
@@ -160,11 +160,11 @@
         var userAgent = navigator.userAgent.toLowerCase();
         var clickEvent = (userAgent.indexOf('iphone') != -1 || userAgent.indexOf('ipod') != -1) ? 'tap' : 'click';
 
-        left.bind(clickEvent, function(e) {
+        left.on(clickEvent, function(e) {
             moveTo('left', e);
         });
 
-        right.bind(clickEvent, function(e) {
+        right.on(clickEvent, function(e) {
             moveTo('right', e);
         });
 
@@ -243,16 +243,16 @@
                 touch = {};
             }
 
-            el.bind('touchstart', function(e) {
+            el.on('touchstart', function(e) {
 				touchStart(e.originalEvent);
 			});
-			el.bind('touchmove', function(e) {
+			el.on('touchmove', function(e) {
 				touchMove(e.originalEvent);
 			});
-			el.bind('touchend', function(e) {
+			el.on('touchend', function(e) {
 				touchEnd(e.originalEvent);
 			});
-			el.bind('touchcancel', function(e) {
+			el.on('touchcancel', function(e) {
 				touchCancel(e.originalEvent);
 			});
         },
