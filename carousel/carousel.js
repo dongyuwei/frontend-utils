@@ -60,7 +60,7 @@
 
         }
 
-        box = container.find('ul');
+        box = container.find('.carousel-container');
         var left = container.find('.arrow-holder.left');
         var right = container.find('.arrow-holder.right');
 
@@ -243,10 +243,18 @@
                 touch = {};
             }
 
-            el.on('touchstart', touchStart);
-            el.on('touchmove', touchMove);
-            el.on('touchend', touchEnd);
-            el.on('touchcancel', touchCancel);
+            el.bind('touchstart', function(e) {
+				touchStart(e.originalEvent);
+			});
+			el.bind('touchmove', function(e) {
+				touchMove(e.originalEvent);
+			});
+			el.bind('touchend', function(e) {
+				touchEnd(e.originalEvent);
+			});
+			el.bind('touchcancel', function(e) {
+				touchCancel(e.originalEvent);
+			});
         },
         transform: function transform(element, dir, dx, duration, transitionEnd, distance) {
             element.off('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd');
