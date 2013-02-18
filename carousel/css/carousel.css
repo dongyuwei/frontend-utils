@@ -1,0 +1,67 @@
+.icon-huge-left:hover {
+  background: url(arrow.png) -48px -420px no-repeat;
+}
+.icon-huge-left {
+  background: url(arrow.png) -91px -336px no-repeat;
+}
+.icon-huge-right:hover {
+  background: url(arrow.png) -134px -252px no-repeat;
+}
+.icon-huge-right {
+  background: url(arrow.png) -177px -168px no-repeat;
+}
+.carousel {
+  position: relative;
+  width: 992px;
+  height: 128px;
+  overflow: visible;
+  margin: 10px auto;
+}
+.carousel .viewport {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+.carousel .list {
+  position: relative;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.carousel .item {
+  margin: 0 auto;
+  padding: 0;
+  float: left;
+}
+.carousel .arrow-holder {
+  width: 40px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  display: block;
+  cursor: pointer;
+  outline: none;
+}
+.carousel .arrow-icon {
+  width: 40px;
+  height: 100%;
+  top: 50%;
+  margin-top: -45px;
+  position: absolute;
+  cursor: pointer;
+  background-repeat: no-repeat;
+}
+.carousel .arrow-holder.left {
+  left: -50px;
+}
+.carousel .arrow-holder.right {
+  right: -50px;
+}
+.carousel .arrow-icon.left {
+  left: 0;
+}
+.carousel .arrow-icon.right {
+  right: 0;
+}

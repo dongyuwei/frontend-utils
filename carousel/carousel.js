@@ -1,33 +1,33 @@
 /**
- * @description $.fn.carousel
- * @author yuwei
+ * @description: $.fn.carousel
+ * @author: yuwei
  */
 ;(function($) {
-	var tools = {};
-	/**
-	 * @method carousel
-	 * @param  {Object} config 
-	 * @return {Object} this
-	 */
-	$.fn.carousel = function(config) {
+    var tools = {};
+    /**
+     * @method carousel
+     * @param  {Object} config 
+     * @return {Object} this
+     */
+    $.fn.carousel = function(config) {
         config = $.extend({
-            duration: 500,
-            //动画持续时间
-            itemsPerMove: 1,
             //每次滑动的(图片)个数
-            noTransform3d: false,
+            itemsPerMove    : 1,
+            //item(图片) width
+            itemWidth       : 128,
+            //动画持续时间
+            duration        : 500,
+            //无限循环
+            loop            : false,
             // 不使用css3 Transform3d
-            autoPlay: false,
+            noTransform3d   : false,
+            
             //自动播放
-            autoPlayDelay: 1000,
-
-            pagingNav: false //显示paging
+            autoPlay        : false,
+            autoPlayDelay   : 1000
         }, config);
 
         var container = this;
-        container.css('overflow', 'visible');
-        container[0].innerHTML = '<div class="carousel-wrapper">' + container[0].innerHTML + '</div>' + '<a href="#" class="arrow-holder left"><span class="arrow-icon left"></span></a>' + '<a href="#" class="arrow-holder right"><span class="arrow-icon right"></span></a>';
-        var box;
 
         if (config.pagingNav) {
             config.itemsPerMove = 1;
@@ -60,58 +60,50 @@
 
         }
 
-        box = container.find('.carousel-container');
-        var left = container.find('.arrow-holder.left');
-        var right = container.find('.arrow-holder.right');
+        var listEl = container.find('.list');
+        var left = container.find('a.left');
+        var right = container.find('a.right');
 
         if (config.autoPlay) {
             left.hide();
             right.hide();
         }
 
-        var first = box.children(":first");
-        var totalWidth = first.outerWidth(true) * box.children().length;
-        box.css('width', totalWidth);
-        box.children(":last").addClass('last');
-        if (box.position().left === 0) {
+        //you must set <img>'s width and height!
+        var width = Math.max(config.itemWidth,listEl.children(":first").outerWidth(true));
+
+        var totalWidth = width * listEl.children().length;
+        listEl.css('width', totalWidth);
+
+        if (listEl.position().left === 0) {
             left.addClass('disabled');
         }
 
-        var width = first.width();
-        var step = first.outerWidth(true) * config.itemsPerMove;
+        var step = width * config.itemsPerMove;
 
         function afterTransition() {
-            var iLeft = box.position().left;
+            var iLeft = listEl.position().left;
             if (iLeft >= 0 || Math.round(iLeft) === 0) {
-                box.trigger('leftEnd');
+                listEl.trigger('leftEnd');
                 left.addClass('disabled');
             } else {
                 left.removeClass('disabled');
             }
 
-            if (Math.abs(iLeft) + container.outerWidth() + 20 >= totalWidth) {
+            if (Math.abs(iLeft) + container.outerWidth() >= totalWidth) {
                 right.addClass('disabled');
-                box.trigger('rightEnd');
+                listEl.trigger('rightEnd');
             } else {
                 right.removeClass('disabled');
             }
-
-            if (config.pagingNav && paging) {
-                var index = Math.round(Math.abs(iLeft) / step);
-                paging.removeClass('current');
-                $(paging[index]).addClass('current');
-            }
         }
 
-        var cssTranslate3dSupported = tools.supportTransform3d();
+        var usingTransform = tools.supportTransform3d() && !config.noTransform3d;
 
         function moveTo(direction, e) {
             e && e.preventDefault();
-
-            if (direction === 'left' && left.hasClass('disabled')) {
-                return false;
-            }
-            if (direction === 'right' && right.hasClass('disabled')) {
+            if (!config.loop && ((direction === 'left' && left.hasClass('disabled')) 
+                || (direction === 'right' && right.hasClass('disabled')))) {
                 return false;
             }
 
@@ -119,18 +111,27 @@
             if (e && e.touch) { //touchmove
                 dx = e.touch.speed * config.duration;
             }
-
-            if (direction === 'left' && Math.abs(box.position().left) < Math.max(step, dx)) {
-                dx = Math.abs(box.position().left);
+            var initDx = dx;
+            if (direction === 'left' && Math.abs(listEl.position().left) < Math.max(step, dx)) {
+                dx = Math.abs(listEl.position().left);
+                if(config.loop && dx === 0){//loop to last item
+                    var l = -(totalWidth - container.width() + initDx );
+                    usingTransform ? tools.translate(listEl,l,0) : listEl.css('left', l);
+                    dx = initDx;
+                }
             }
-            if (direction === 'right' && Math.abs(box.position().left) + container.outerWidth() + Math.max(step, dx) > totalWidth) {
-                dx = totalWidth - Math.abs(box.position().left) - container.outerWidth() + 3;
+            if (direction === 'right' && Math.abs(listEl.position().left) + container.outerWidth() + Math.max(step, dx) > totalWidth) {
+                dx = totalWidth - Math.abs(listEl.position().left) - container.outerWidth();
+                if(config.loop && dx === 0){//loop to first item
+                    usingTransform ? tools.translate(listEl,initDx,0) : listEl.css('left', initDx);
+                    dx = initDx;
+                }
             }
 
-            if (cssTranslate3dSupported && !config.noTransform3d) {
-                tools.transform(box, direction, dx, config.duration, afterTransition);
+            if (usingTransform) {
+                tools.transform(listEl, direction, dx, config.duration, afterTransition);
             } else {
-                box.animate({
+                listEl.animate({
                     left: (direction === 'left' ? '+=' : '-=') + dx
                 }, config.duration, 'swing', afterTransition);
             }
@@ -141,15 +142,17 @@
             autoplayTimer = setInterval(function() {
                 moveTo('right');
             }, config.autoPlayDelay);
-            box.off('rightEnd');
-            box.off('leftEnd');
-            box.on('rightEnd', function() {
+
+            listEl.off('rightEnd');
+            listEl.off('leftEnd');
+
+            listEl.on('rightEnd', function() {
                 clearInterval(autoplayTimer);
                 autoplayTimer && (autoplayTimer = setInterval(function() {
                     moveTo('left');
                 }, config.autoPlayDelay));
             });
-            box.on('leftEnd', function() {
+            listEl.on('leftEnd', function() {
                 clearInterval(autoplayTimer);
                 autoplayTimer && (autoplayTimer = setInterval(function() {
                     moveTo('right');
@@ -157,19 +160,15 @@
             });
         }
 
-        var userAgent = navigator.userAgent.toLowerCase();
-        var clickEvent = (userAgent.indexOf('iphone') != -1 || userAgent.indexOf('ipod') != -1) ? 'tap' : 'click';
-
-        left.on(clickEvent, function(e) {
+        left.click(function(e){
             moveTo('left', e);
         });
-
-        right.on(clickEvent, function(e) {
+        right.click(function(e) {
             moveTo('right', e);
         });
 
         //touchmove时反方向滑动
-        tools.onTouchEvent(box, function(e) {
+        tools.onTouchEvent(listEl, function(e) {
             moveTo('right', e);
         }, function(e) {
             moveTo('left', e);
@@ -244,26 +243,30 @@
             }
 
             el.on('touchstart', function(e) {
-				touchStart(e.originalEvent);
-			});
-			el.on('touchmove', function(e) {
-				touchMove(e.originalEvent);
-			});
-			el.on('touchend', function(e) {
-				touchEnd(e.originalEvent);
-			});
-			el.on('touchcancel', function(e) {
-				touchCancel(e.originalEvent);
-			});
+                touchStart(e.originalEvent);
+            });
+            el.on('touchmove', function(e) {
+                touchMove(e.originalEvent);
+            });
+            el.on('touchend', function(e) {
+                touchEnd(e.originalEvent);
+            });
+            el.on('touchcancel', function(e) {
+                touchCancel(e.originalEvent);
+            });
+        },
+        translate:function(element,distance,duration){
+            var style = element[0].style;
+            style.webkitTransitionDuration = style.MozTransitionDuration = style.msTransitionDuration = style.OTransitionDuration = style.transitionDuration = duration + 'ms';
+            style.transform = style.MozTransform = style.webkitTransform = 'translate3d(' + distance + 'px,0,0)';
+            style.msTransform = style.OTransform = 'translateX(' + distance + 'px)';
+            style.transitionTimingFunction = style.webkitTransitionTimingFunction = style.mozTransitionTimingFunction = style.msTransitionTimingFunction = style.oTransitionTimingFunction = 'ease-in-out';
         },
         transform: function transform(element, dir, dx, duration, transitionEnd, distance) {
             element.off('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd');
             var style = element[0].style;
             distance = typeof distance === "number" ? distance : (dir === 'left' ? element.position().left + dx : element.position().left - dx);
-            style.webkitTransitionDuration = style.MozTransitionDuration = style.msTransitionDuration = style.OTransitionDuration = style.transitionDuration = duration + 'ms';
-            style.transform = style.MozTransform = style.webkitTransform = 'translate3d(' + distance + 'px,0,0)';
-            style.msTransform = style.OTransform = 'translateX(' + distance + 'px)';
-            style.transitionTimingFunction = style.webkitTransitionTimingFunction = style.mozTransitionTimingFunction = style.msTransitionTimingFunction = style.oTransitionTimingFunction = 'ease-in-out'; // cubic-bezier(.17,.67,.83,.67)
+            this.translate(element,distance,duration);
             element.on('transitionend webkitTransitionEnd msTransitionEnd oTransitionEnd', transitionEnd);
         },
         speed: function(x1, y1, x2, y2, time) {
