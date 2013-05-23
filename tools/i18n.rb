@@ -14,10 +14,8 @@ def export_i18n_js(is_mobile = false)
                       :user => 'root', 
                       :host => 'tools.tbox.me', 
                       :database => is_mobile ? 'tpl_mobile': 'tpl_system',
-                      :password=>'xxxx',
+                      :password=>'xxxxxxxxxxxxxxx',
                       :encoding => 'utf8')
-  # puts db.tables
-  # sequel -d mysql://root:xxxx@tools.tbox.me/tpl_system
 
   dataset = db[:ui_langs]
   columns = dataset.columns - [:id,:name,:active,:last_modified]
@@ -28,10 +26,16 @@ def export_i18n_js(is_mobile = false)
   end
   db.fetch('SELECT * FROM ui_langs where active="1"') do |row|
     columns.each do|c|
-      files[c][row[:name]] = row[c]
+      if row[:name].index(".") 
+        # "pageBar.prev": "Previous" ------> "pageBar":{"prev" : "Previous"}
+        arr = row[:name].split(".")
+        files[c][arr[0]] = files[c][arr[0]] || {} 
+        files[c][arr[0]][arr[1]] = row[c]
+      else
+        files[c][row[:name]] = row[c]
+      end
     end
   end
-
   tmp_dir = Dir.mktmpdir
   columns.each do|lang|
     content = ['litb = window.litb || {};',"litb.langs = #{JSON.pretty_generate(files[lang])};"].join(' ')
@@ -43,7 +47,6 @@ def export_i18n_js(is_mobile = false)
 
   tmp_dir
 end
-
 
 def zip_dir tmp_dir
   system("cd #{tmp_dir} && zip -r i18n.zip ./* ")
