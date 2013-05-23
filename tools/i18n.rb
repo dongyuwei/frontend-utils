@@ -3,7 +3,7 @@
 
 require 'rubygems'
 require 'sequel'
-require 'json'
+require 'yajl/json_gem'
 require 'tmpdir'
 require 'sinatra'
 require 'fileutils'
@@ -14,7 +14,7 @@ def export_i18n_js(is_mobile = false)
                       :user => 'root', 
                       :host => 'tools.tbox.me', 
                       :database => is_mobile ? 'tpl_mobile': 'tpl_system',
-                      :password=>'xxxxxxxxxxxxxxx',
+                      :password=>'xxxxxxx',
                       :encoding => 'utf8')
 
   dataset = db[:ui_langs]
@@ -47,6 +47,7 @@ def export_i18n_js(is_mobile = false)
 
   tmp_dir
 end
+
 
 def zip_dir tmp_dir
   system("cd #{tmp_dir} && zip -r i18n.zip ./* ")
