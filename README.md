@@ -1,6 +1,3 @@
-libs and some resource for lightinthebox's frontend
-libs and some resource for lightinthebox's frontend
-
 jquery.lazyload.js(see https://github.com/tuupola/jquery_lazyload) for `img` lazy-load or `TEXTAREA` lazy-render:
 My modification:
  1. adjust for jquery v1.3.1(data api has bug?)
@@ -28,6 +25,6 @@ $('#carousel-demo').carousel({
 });
 ```
 
-lightinthebox/thirdpartylinks/chrome_dev_tools/HAREntry.js: 
+thirdpartylinks/chrome_dev_tools/HAREntry.js: 
  **给chrome_dev_tools打了补丁，使其导出HTTP HAR文件时附加上请求的initiator信息（用于收集统计外链请求之源）**
 
